@@ -44,7 +44,7 @@ const handler = async (request: Request): Promise<Response> => {
   if (!url.searchParams.has("__host")) {
     return new Response(
       "Request is formatted incorrectly. Please include __host in the query string.",
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -56,7 +56,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   // Copy headers from the request to the new request
   const request_headers = new Headers(
-    JSON.parse(url.searchParams.get("__headers") || "{}")
+    JSON.parse(url.searchParams.get("__headers") || "{}"),
   );
   copyHeader("range", request_headers, request.headers);
 
@@ -84,7 +84,7 @@ const handler = async (request: Request): Promise<Response> => {
   // add cors headers
   headers.set(
     "Access-Control-Allow-Origin",
-    request.headers.get("origin") || "*"
+    request.headers.get("origin") || "*",
   );
   headers.set("Access-Control-Allow-Headers", "*");
   headers.set("Access-Control-Allow-Methods", "*");
