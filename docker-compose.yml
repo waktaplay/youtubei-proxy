@@ -2,7 +2,14 @@ version: "3.8"
 
 services:
   youtubei-proxy:
+    container_name: youtubei-proxy
     image: ghcr.io/waktaplay/youtubei-proxy:latest
     ports:
       - "8080:8080"
+    networks:
+      - nginx-bridge
     restart: always
+
+networks:
+  nginx-bridge:
+    external: true
