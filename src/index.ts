@@ -62,7 +62,7 @@ const handler = async (req: Request) => {
   // Make the request to the target server
   const fetchRes = await fetch(urlObj.toString(), {
     method,
-    body: req.body,
+    body: await req.text(),
     headers: requestHeaders,
     proxy:
       process.env.HTTP_PROXY ||
