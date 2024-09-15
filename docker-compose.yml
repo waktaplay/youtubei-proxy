@@ -5,7 +5,7 @@ services:
     container_name: youtubei-proxy
     image: ghcr.io/waktaplay/youtubei-proxy:latest
     ports:
-      - "8080:8080"
+      - "8123:8123"
     networks:
       - nginx-bridge
     restart: always

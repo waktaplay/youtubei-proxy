@@ -1,10 +1,14 @@
-FROM denoland/deno
-LABEL org.opencontainers.image.source https://github.com/waktaplay/youtubei-proxy-with-potoken
+FROM oven/bun:1-alpine
+WORKDIR /usr/src/app
 
-COPY . /app
-WORKDIR /app
+# Install dependencies
+COPY package.json .
+COPY bun.lockb .
+RUN bun install --frozen-lockfile
 
-RUN deno cache index.ts
+# Copy the rest of the files and run the app
+USER bun
+EXPOSE 8123/tcp
 
-EXPOSE 8000
-CMD ["run", "--config", "tsconfig.json", "--allow-read", "--allow-env", "--allow-net", "index.ts"]
+COPY . .
+CMD [ "bun", "run", "src/index.ts" ]
