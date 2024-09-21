@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	"encoding/json"
+
 	"github.com/common-nighthawk/go-figure"
 	"golang.org/x/net/proxy"
 )
@@ -87,6 +88,16 @@ func handler(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Construct the return headers
+	responseHeaders := w.Header()
+
+	// Add CORS headers
+	responseHeaders.Set("Access-Control-Allow-Origin", headers.Get("Origin"))
+	responseHeaders.Set("Access-Control-Allow-Headers", "*")
+	responseHeaders.Set("Access-Control-Allow-Methods", "*")
+	responseHeaders.Set("Access-Control-Allow-Credentials", "true")
+	responseHeaders.Set("Cross-Origin-Resource-Policy", "cross-origin")
+
 	// 청크 단위로 요청
 	chunkStart := 0
 	for {
@@ -117,6 +128,24 @@ func handler(w http.ResponseWriter, req *http.Request) {
 		// 응답 처리
 		if fetchRes.StatusCode != http.StatusPartialContent {
 			break
+		}
+
+		if chunkStart == 0 {
+			copyHeader("Accept-Ranges", responseHeaders, fetchRes.Header)
+			copyHeader("Alt-Svc", responseHeaders, fetchRes.Header)
+			copyHeader("Cache-Control", responseHeaders, fetchRes.Header)
+
+			copyHeader("Content-Length", responseHeaders, fetchRes.Header)
+			// copyHeader("Content-Range", responseHeaders, fetchRes.Header)
+			copyHeader("Content-Type", responseHeaders, fetchRes.Header)
+
+			copyHeader("Date", responseHeaders, fetchRes.Header)
+			copyHeader("Expires", responseHeaders, fetchRes.Header)
+			copyHeader("Last-Modified", responseHeaders, fetchRes.Header)
+
+			copyHeader("Server", responseHeaders, fetchRes.Header)
+			copyHeader("Vary", responseHeaders, fetchRes.Header)
+			copyHeader("X-Content-Type-Options", responseHeaders, fetchRes.Header)
 		}
 
 		// 응답 스트림을 클라이언트에 전달
