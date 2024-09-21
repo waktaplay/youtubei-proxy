@@ -12,6 +12,13 @@ function copyHeader(headerName: string, to: Headers, from: Headers) {
   }
 }
 
+function setCORSHeaders(headers: Headers, origin: string | null) {
+  headers.set("Access-Control-Allow-Origin", origin || "*");
+  headers.set("Access-Control-Allow-Headers", "*");
+  headers.set("Access-Control-Allow-Methods", "*");
+  headers.set("Access-Control-Allow-Credentials", "true");
+}
+
 ////////////////////////////////////////////////////////////
 // #region Functions
 
@@ -59,20 +66,32 @@ const handler = async (req: Request) => {
 
   urlObj.searchParams.delete("__headers");
 
+  // Construct the return headers
+  const responseHeaders = new Headers();
+
+  if (
+    urlObj.hostname.endsWith("googlevideo.com") &&
+    urlObj.pathname === "/videoplayback"
+  ) {
+    const content_length = Number(urlObj.searchParams.get("clen"));
+
+    if (content_length <= 10 * 1024 * 1024) {
+      urlObj.searchParams.set("range", `0-${content_length}`);
+    }
+  }
+
   // Make the request to the target server
   const fetchRes = await fetch(urlObj.toString(), {
     method,
     body: await req.text(),
     headers: requestHeaders,
+    // @ts-expect-error - x
     proxy:
       process.env.HTTP_PROXY ||
       process.env.HTTPS_PROXY ||
       process.env.PROXY ||
       undefined,
   });
-
-  // Construct the return headers
-  const responseHeaders = new Headers();
 
   // Copy content headers
   copyHeader("content-length", responseHeaders, fetchRes.headers);
@@ -82,13 +101,7 @@ const handler = async (req: Request) => {
   copyHeader("content-range", responseHeaders, fetchRes.headers);
 
   // Add CORS headers
-  responseHeaders.set(
-    "Access-Control-Allow-Origin",
-    headers.get("origin") || "*"
-  );
-  responseHeaders.set("Access-Control-Allow-Headers", "*");
-  responseHeaders.set("Access-Control-Allow-Methods", "*");
-  responseHeaders.set("Access-Control-Allow-Credentials", "true");
+  setCORSHeaders(responseHeaders, headers.get("origin"));
 
   // Return the proxied response
   return new Response(fetchRes.body, {
